@@ -1,0 +1,81 @@
+Author: Arjun Bakshi
+email: bakshi.11@osu.edu
+
+#############################################
+#####Dependencies
+#############################################
+This code was developed with the following libraries and their respective versions:
+python 2.7
+numpy 1.11.0
+scipy 0.17.0
+scikit learn 0.16.0
+pylab 1.5.1
+
+
+#############################################
+#####Input file and formats
+#############################################
+Community file:
+1 community per line. Line should contain TAB (\t) separated list of node IDs in that community.
+Node IDs need to be integers. Example:
+------------------
+1   22  34  102 45
+243 43  12  55  324
+...
+..
+.
+------------------
+
+Graph file:
+1 edge per line. A line should have 2 nodes IDs separated by a TAB(\t). Node IDs need to be integers.
+Example:
+------------------
+1 2
+44  4
+12  43
+...
+...
+.
+------------------
+
+Node labels file:
+1 node-label pair per line. Node ID followed by numeric/integer label. If there are N distinct labels,
+then the labels should range from 0 to N-1. Should be TAB separated.
+Node IDs and labels need to be integers. Ex:
+------------------
+1   0
+22   4
+13   4
+4   4
+11  3
+14  0
+...
+..
+.
+------------------
+
+#############################################
+#####Generating node labels file
+#############################################
+If you do not have a node label file, one can be generated using the "label_nodes.py" script.
+Usage:  python label_nodes.py <graph_src> <#node labels> <output filename> [--verbose]
+Generally, setting #node labels to 4 or 5 works best.
+
+#############################################
+#####Running Bespoke
+#############################################
+Bespoke can be run using the "run_bespoke.py" python file.
+usage: bespoke.py nw_src tr_src num_find ls op [--np NP] [--eval_src EVAL_SRC]
+
+positional arguments:
+  nw_src               Graph file. One edge per line.
+  tr_src               File containing training comms.
+  num_find             Number communities to extract.
+  ls                   File containing node labels.
+  op                   Write discovered communities to this file.
+
+optional arguments:
+  --np NP              Number of subgraph patterns to extract. Default=5
+  --eval_src EVAL_SRC  File containing comms. to evaluate against.
+  -h, --help           show this help message and exit
+
