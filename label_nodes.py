@@ -10,11 +10,11 @@ import argparse
 ##############################################
 
 def get_jaccard_dict(graph):
+    '''
+    input: graph, object of type SimpleNW
+    output: dict, node --> [jaccard score dist.]
+    '''
     edges = set(graph.edges())
-
-    nodes = list(graph.nodes())
-    num_edges = len(edges)
-    perc_1 = num_edges/100
     jaccs = {}
     d_neigh = {}
 
@@ -46,11 +46,28 @@ def get_jaccard_dict(graph):
 
         jaccs[a].append(jacc)
         jaccs[b].append(jacc)
+    return jaccs
 
-    d = {}
-    for node in jaccs.keys():
-        v = jaccs[node]
+def summarize_jacc_dict(j_dict):
+    '''
+    input: j_dict, dict node-->[jaccard score dist.]
+    output: None
+    updates j_dict, [jaccard score dist.] converted to
+    [0th, 25th, 50th, 75th, 100th percentile] values
+    '''
+    for node in j_dict.keys():
+        v = j_dict[node]
         v = numpy.percentile(v, [0,25,50,75,100])
+        j_dict[node] = v
+    
+def convert_jacc_dict_to_str(j_dict):
+    '''
+    input: j_dict, node-->[float vals]
+    output: j_dict, node-->string
+    '''
+    d = {}
+    for node in j_dict.keys():
+        v = j_dict[node]
         v = numpy.round(v,3)
         s = map(str, v)
         s = "\t".join(s)
@@ -58,6 +75,10 @@ def get_jaccard_dict(graph):
     return d
 
 def write_node_feature(data_dict, outname):
+    '''
+    write out node features to file. It can be reused to generate
+    different number of node labels
+    '''
     f = open(outname,'w')
     data = []
     for node in data_dict.keys():
@@ -78,6 +99,11 @@ def write_node_feature(data_dict, outname):
     f.close()
 
 def run_node_feature(graph_src, verbose=False):
+    '''
+    loads graph file, computes jaccard sim dist. for each
+    node, summarizes the distribution, writes it to a file,
+    returns file name
+    '''
     print "processing ",graph_src
     src = graph_src
 
@@ -90,15 +116,15 @@ def run_node_feature(graph_src, verbose=False):
 
     start = time.time()
     jaccard_dict = get_jaccard_dict(g)
+    summarize_jacc_dict(jaccard_dict)
+    jaccard_dict = convert_jacc_dict_to_str(jaccard_dict)
     if verbose:
         print "jaccard percentiles computed in ", round(time.time()-start,2), "seconds"
         sys.stdout.flush()
 
-    start = time.time()
-    out_name= src[src.rfind(os.sep)+1:]
+    out_name = src[src.rfind(os.sep)+1:]
     out_name = out_name.replace(".txt","_jacc_perc_NodeFeatures.txt")
-    if verbose:
-        print "features written to file:", out_name
+    start = time.time()
     write_node_feature(jaccard_dict, out_name)
     if verbose:
         print "Jaccard node features extracted/written in ", round(time.time()-start,2), "seconds"
@@ -112,8 +138,11 @@ def run_node_feature(graph_src, verbose=False):
 #####       Node clustering/labeling
 #####
 ##############################################
-def cluster_nodes(nodes, features, args_list):
-    K = args_list[0]
+def cluster_nodes(nodes, features, K):
+    '''
+    clusters nodes based on their features, returns a dict
+    label_dict: {node:node_label}
+    '''
     c = KMeans(K)
     c.fit(features)
     labels = c.labels_
@@ -121,7 +150,10 @@ def cluster_nodes(nodes, features, args_list):
     label_dict = common.make_dict(nodes, labels)
     return label_dict
 
-def write_roles(d_roles,name, verbose):
+def write_roles(d_roles, name, verbose):
+    '''
+    d_roles: dict, nodeID->node_label or node role
+    '''
     f = open(name,'w')
     for key in d_roles:
         s = str(key)+"\t"+str(d_roles[key])+"\n"
@@ -132,6 +164,10 @@ def write_roles(d_roles,name, verbose):
         sys.stdout.flush()
 
 def process_graph(src_node_features, K, verbose=False):
+    '''
+    src_node_features: name of file containing node->feature info.
+    K: number of node labels to generate
+    '''
     nodes_features = common.load_node_features(src_node_features, delim="\t")
     if verbose:
         print "node features loaded"
@@ -141,7 +177,7 @@ def process_graph(src_node_features, K, verbose=False):
     data = numpy.array(nodes_features.values())
     data = zscore(data, 0)
     data = numpy.nan_to_num(data)
-    label_dict = cluster_nodes(all_nodes, data, [K])
+    label_dict = cluster_nodes(all_nodes, data, K)
     if label_dict == None:
         return None
     if verbose:
