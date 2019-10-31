@@ -70,7 +70,7 @@ Generally, setting #node labels to 4 or 5 works best.
 #####Running Bespoke
 #############################################
 Bespoke can be run using the "run_bespoke.py" python file.
-usage: bespoke.py nw_src tr_src num_find ls op [--np NP] [--eval_src EVAL_SRC]
+usage: python run_bespoke.py nw_src tr_src num_find ls op [--np NP] [--eval_src EVAL_SRC]
 
 positional arguments:
   nw_src               Graph file. One edge per line.
@@ -84,3 +84,60 @@ optional arguments:
   --eval_src EVAL_SRC  File containing comms. to evaluate against.
   -h, --help           show this help message and exit
 
+
+#############################################
+#####Example: Running Bespoke
+#############################################
+
+Download the dblp graph and top5000 communities dataset from Standford's SNAP website. 
+On ubuntu/mac/linux run the following commands:
+
+1. python label_nodes.py com-dblp.ungraph.txt 4 dblp_labels.txt --verbose
+That will  generate a file with node to label mapping called dblp_labels.txt
+Output:
+### Generating node labels ###
+processing  com-dblp.ungraph.txt
+graph loaded in  3.55 seconds
+-----------------
+jaccard percentiles computed in  42.5 seconds
+Jaccard node features extracted/written in  0.27 seconds
+-----------------
+node features loaded
+nodes clustered
+Node labels written to file: dblp_labels.txt
+###
+
+2. tail -n 100 com-dblp.top5000.cmty.txt > train.txt
+Use last 100 communities as training data
+
+3. head -n -100 com-dblp.top5000.cmty.txt > test.txt
+Use everything except 100 last 100 as test or evaluation dataset
+
+4.python run_bespoke.py com-dblp.ungraph.txt train.txt 50000 dblp_labels.txt op.txt --eval_src test.txt
+Run bespoke. Generate 50k community guesses, evaluate them against communities in test.txt
+Output:
+#### Input arguments ###
+eval_src --> test.txt
+tr_src --> train.txt
+num_find --> 50000
+ls --> dblp_labels.txt
+np --> 5
+nw_src --> com-dblp.ungraph.txt
+op --> op.txt
+####
+
+
+###  Beginning Bespoke ###
+Training...
+Training complete...
+Beginning extraction...
+Extraction complete.
+total_time(s): 116.09
+training_time(s): 103.69
+Writing extracted communities to file: op.txt ... done
+###  End of Bespoke ###
+
+Scoring extracted communities (may take a lot of time)...
+F1 Score: 0.541
+
+######
