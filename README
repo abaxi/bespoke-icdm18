@@ -141,3 +141,7 @@ Scoring extracted communities (may take a lot of time)...
 F1 Score: 0.541
 
 ######
+
+
+I would also recommend looking at another user's implementation of Bespoke. It is supposed to be faster overall.
+Link: https://github.com/yzhang1918/bespoke-sscd
